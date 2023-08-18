@@ -3,27 +3,27 @@ import torch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from dataset import ImageDataset
+from dataset import MultiAttribDataset
 from torch.utils.data import DataLoader
 
 # Initialize the computation device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Intialize the model
-model = models.model(pretrained=False, requires_grad=False).to(device)
+model = models.resnet50(pretrained=False, requires_grad=False, num_classes=3).to(device)
 
 # Load the model checkpoint
-checkpoint = torch.load('../outputs/model.pth')
+checkpoint = torch.load('./outputs/model.pth')
 
 # Load model weights state_dict
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
 # Load annotation CSV file
-test_csv = pd.read_csv('/content/multi-label-classification-pytorch/dataset/data_total3/test/test.csv')
+test_csv = pd.read_csv('/content/multi-label-classification-pytorch/dataset/test.csv')
 
 # Prepare the test dataset and dataloader
-test_data = ImageDataset(
+test_data = MultiAttribDataset(
     test_csv, size=(224,224)
 )
 
@@ -43,9 +43,9 @@ for counter, data in enumerate(test_loader):
     outputs = model(image)
     outputs = torch.sigmoid(outputs)
     outputs = outputs.detach().cpu()
-    #sorted_indices = np.argsort(outputs[0])
+    sorted_indices = np.argsort(outputs[0])
 
-    print(outputs)
+    print(sorted_indices)
     # image = image.squeeze(0)
     # image = image.detach().cpu().numpy()
     # image = np.transpose(image, (1, 2, 0))
