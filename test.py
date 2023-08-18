@@ -33,19 +33,18 @@ test_loader = DataLoader(
     shuffle=False
 )
 
-for counter, data in enumerate(test_loader):
-    image, target = data['image'].to(device), data['label']
 
-    # get all the index positions where value == 1
-    target_indices = [i for i in range(len(target[0])) if target[0][i] == 1]
+for counter, data in enumerate(test_loader):
+    image, label = data['image'].to(device), data['label']
     
     # get the predictions by passing the image through the model
     outputs = model(image)
     outputs = torch.sigmoid(outputs)
     outputs = outputs.detach().cpu()
-    sorted_indices = np.argsort(outputs[0])
+    pred = np.round(outputs[0])
 
-    print(sorted_indices)
+    print(f"Prediction: {pred} | Label: {label}")
+
     # image = image.squeeze(0)
     # image = image.detach().cpu().numpy()
     # image = np.transpose(image, (1, 2, 0))
