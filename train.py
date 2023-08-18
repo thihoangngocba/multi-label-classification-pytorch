@@ -6,41 +6,41 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 from engine import train, validate
-from dataset import ImageDataset
+from dataset import MultiAttribDataset
 from torch.utils.data import DataLoader
 matplotlib.style.use('ggplot')
+
+IMAGE_SIZE=(224,224)
 
 # Initialize the computation device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Intialize the model
-model = models.resnet50(pretrained=True, requires_grad=False).to(device)
+model = models.resnet50(pretrained=True, requires_grad=False, num_classes=3).to(device)
 
 # Learning parameters
 lr = 0.0001
-epochs = 20
+epochs = 1
 batch_size = 32
 optimizer = optim.Adam(model.parameters(), lr=lr)
 criterion = nn.BCELoss()
 
-# Read the training csv file
-train_csv = pd.read_csv('../input/movie-classifier/Multi_Label_dataset/train.csv')
-# Train dataset
-train_data = ImageDataset(
-    train_csv, train=True, test=False
+# Train dataset & dataloader
+train_csv = pd.read_csv('./dataset/train.csv')
+train_data = MultiAttribDataset(
+    train_csv, size=IMAGE_SIZE
 )
-
-# Validation dataset
-valid_data = ImageDataset(
-    train_csv, train=False, test=False
-)
-# Train data loader
 train_loader = DataLoader(
     train_data, 
     batch_size=batch_size,
     shuffle=True
 )
-# Validation data loader
+
+# Validation dataset & dataloader
+val_csv = pd.read_csv('./dataset/val.csv')
+valid_data = MultiAttribDataset(
+    val_csv, size=IMAGE_SIZE
+)
 valid_loader = DataLoader(
     valid_data, 
     batch_size=batch_size,
@@ -72,7 +72,7 @@ torch.save({
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': criterion,
-            }, '../outputs/model.pth')
+            }, './outputs/model.pth')
 
 # Plot and save the train and validation line graphs
 plt.figure(figsize=(10, 7))
@@ -81,5 +81,5 @@ plt.plot(valid_loss, color='red', label='validataion loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('../outputs/loss.png')
+plt.savefig('./outputs/loss.png')
 plt.show()
